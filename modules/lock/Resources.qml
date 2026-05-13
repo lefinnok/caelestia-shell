@@ -1,20 +1,21 @@
-import QtQuick
-import QtQuick.Layouts
-import Caelestia.Config
 import qs.components
 import qs.components.controls
 import qs.components.misc
 import qs.services
+import qs.config
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Shapes
 
 GridLayout {
     id: root
 
     anchors.left: parent.left
     anchors.right: parent.right
-    anchors.margins: Tokens.padding.large
+    anchors.margins: Appearance.padding.large
 
-    rowSpacing: Tokens.spacing.large
-    columnSpacing: Tokens.spacing.large
+    rowSpacing: Appearance.spacing.large
+    columnSpacing: Appearance.spacing.large
     rows: 2
     columns: 2
 
@@ -23,29 +24,29 @@ GridLayout {
     }
 
     Resource {
-        Layout.topMargin: Tokens.padding.large
+        Layout.topMargin: Appearance.padding.large
         icon: "memory"
         value: SystemUsage.cpuPerc
         colour: Colours.palette.m3primary
     }
 
     Resource {
-        Layout.topMargin: Tokens.padding.large
+        Layout.topMargin: Appearance.padding.large
         icon: "thermostat"
         value: Math.min(1, SystemUsage.cpuTemp / 90)
         colour: Colours.palette.m3secondary
     }
 
     Resource {
-        Layout.bottomMargin: Tokens.padding.large
+        Layout.bottomMargin: Appearance.padding.large
         icon: "memory_alt"
         value: SystemUsage.memPerc
         colour: Colours.palette.m3secondary
     }
 
     Resource {
-        Layout.bottomMargin: Tokens.padding.large
-        icon: "hard_disk"
+        Layout.bottomMargin: Appearance.padding.large
+        icon: "storage"
         value: SystemUsage.storagePerc
         colour: Colours.palette.m3tertiary
     }
@@ -61,17 +62,17 @@ GridLayout {
         implicitHeight: width
 
         color: Colours.layer(Colours.palette.m3surfaceContainerHigh, 2)
-        radius: Tokens.rounding.large
+        radius: Appearance.rounding.large
 
         CircularProgress {
             id: circ
 
             anchors.fill: parent
             value: res.value
-            padding: Tokens.padding.large * 3
+            padding: Appearance.padding.large * 3
             fgColour: res.colour
             bgColour: Colours.layer(Colours.palette.m3surfaceContainerHighest, 3)
-            strokeWidth: width < 200 ? Tokens.padding.smaller : Tokens.padding.normal
+            strokeWidth: width < 200 ? Appearance.padding.smaller : Appearance.padding.normal
         }
 
         MaterialIcon {
@@ -85,9 +86,17 @@ GridLayout {
         }
 
         Behavior on value {
-            Anim {
-                type: Anim.StandardLarge
+            NumberAnimation {
+                duration: Appearance.anim.durations.large
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Appearance.anim.curves.standard
             }
         }
+    }
+
+    component Anim: ColorAnimation {
+        duration: Appearance.anim.durations.normal
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: Appearance.anim.curves.standard
     }
 }

@@ -54,10 +54,10 @@ Singleton {
             Player: "music_note",
             Recorder: "mic",
             Game: "sports_esports",
-            FileTools: "files",
-            FileManager: "files",
-            Filesystem: "files",
-            FileTransfer: "files",
+            FileTools: "folder",
+            FileManager: "folder",
+            Filesystem: "folder",
+            FileTransfer: "folder",
             Settings: "settings",
             DesktopSettings: "settings",
             HardwareSettings: "settings",
@@ -183,13 +183,13 @@ Singleton {
         if (summary.includes("update"))
             return "update";
         if (summary.includes("unable to"))
-            return "deployed_code_alert";
+            return "warning";
         if (summary.includes("profile"))
             return "person";
         if (summary.includes("file"))
             return "folder_copy";
         if (urgency === NotificationUrgency.Critical)
-            return "release_alert";
+            return "error";
         return "chat";
     }
 

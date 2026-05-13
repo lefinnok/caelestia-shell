@@ -1,0 +1,23 @@
+{
+  "appearance": {
+    "rounding": {
+      "scale": 0
+    },
+    "spacing": {
+      "scale": 1.2
+    },
+    "padding": {
+      "scale": 1.2
+    },
+    "font": {
+      "size": {
+        "scale": 1.5,
+        "small": 16,
+        "smaller": 18,
+        "normal": 20,
+        "larger": 23,
+        "large": 27
+      }
+    }
+  }
+}
