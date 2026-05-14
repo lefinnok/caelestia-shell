@@ -42,7 +42,7 @@ ColumnLayout {
     }
 
     Detail {
-        icon: "location_on"
+        icon: "my_location"
         text: qsTr("Address: %1").arg(`0x${root.client?.address}` ?? "unknown")
         color: Colours.palette.m3primary
     }

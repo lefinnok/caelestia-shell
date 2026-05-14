@@ -152,7 +152,7 @@ ColumnLayout {
 
                     MaterialIcon {
                         Layout.alignment: Qt.AlignHCenter
-                        text: forecastHour.modelData?.icon ?? "cloud_alert"
+                        text: forecastHour.modelData?.icon ?? "cloud"
                         font.pointSize: Tokens.font.size.extraLarge * 1.5
                         font.weight: 500
                     }

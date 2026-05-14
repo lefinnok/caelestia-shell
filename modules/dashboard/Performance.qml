@@ -571,7 +571,7 @@ Item {
             spacing: Tokens.spacing.smaller
 
             CardHeader {
-                icon: "hard_disk"
+                icon: "hard_drive"
                 title: {
                     const base = qsTr("Storage");
                     if (!storageGaugeCard.currentDisk)

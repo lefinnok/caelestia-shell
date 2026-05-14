@@ -77,7 +77,7 @@ StyledRect {
                             if (p === "Home")
                                 return "home";
                             if (p === "Downloads")
-                                return "file_download";
+                                return "download";
                             if (p === "Desktop")
                                 return "desktop_windows";
                             if (p === "Documents")

@@ -15,7 +15,7 @@ Singleton {
     property list<var> forecast
     property list<var> hourlyForecast
 
-    readonly property string icon: cc ? Icons.getWeatherIcon(cc.weatherCode) : "cloud_alert"
+    readonly property string icon: cc ? Icons.getWeatherIcon(cc.weatherCode) : "cloud"
     readonly property string description: cc?.weatherDesc ?? qsTr("No weather")
     readonly property string temp: GlobalConfig.services.useFahrenheit ? `${cc?.tempF ?? 0}°F` : `${cc?.tempC ?? 0}°C`
     readonly property string feelsLike: GlobalConfig.services.useFahrenheit ? `${cc?.feelsLikeF ?? 0}°F` : `${cc?.feelsLikeC ?? 0}°C`
