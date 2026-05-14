@@ -1,11 +1,10 @@
 pragma ComponentBehavior: Bound
 
-import qs.components
-import qs.services
-import qs.config
-import qs.utils
 import QtQuick
 import QtQuick.Layouts
+import Caelestia.Config
+import qs.components
+import qs.services
 
 ColumnLayout {
     id: root
@@ -14,40 +13,40 @@ ColumnLayout {
 
     anchors.left: parent.left
     anchors.right: parent.right
-    anchors.margins: Appearance.padding.large * 2
+    anchors.margins: Tokens.padding.large * 2
 
-    spacing: Appearance.spacing.small
+    spacing: Tokens.spacing.small
 
     Loader {
-        Layout.topMargin: Appearance.padding.large * 2
-        Layout.bottomMargin: -Appearance.padding.large
+        asynchronous: true
+        Layout.topMargin: Tokens.padding.large * 2
+        Layout.bottomMargin: -Tokens.padding.large
         Layout.alignment: Qt.AlignHCenter
 
-        asynchronous: true
         active: root.rootHeight > 610
         visible: active
 
         sourceComponent: StyledText {
             text: qsTr("Weather")
             color: Colours.palette.m3primary
-            font.pointSize: Appearance.font.size.extraLarge
+            font.pointSize: Tokens.font.size.extraLarge
             font.weight: 500
         }
     }
 
     RowLayout {
         Layout.fillWidth: true
-        spacing: Appearance.spacing.large
+        spacing: Tokens.spacing.large
 
         MaterialIcon {
             animate: true
             text: Weather.icon
             color: Colours.palette.m3secondary
-            font.pointSize: Appearance.font.size.extraLarge * 2.5
+            font.pointSize: Tokens.font.size.extraLarge * 2.5
         }
 
         ColumnLayout {
-            spacing: Appearance.spacing.small
+            spacing: Tokens.spacing.small
 
             StyledText {
                 Layout.fillWidth: true
@@ -55,7 +54,7 @@ ColumnLayout {
                 animate: true
                 text: Weather.description
                 color: Colours.palette.m3secondary
-                font.pointSize: Appearance.font.size.large
+                font.pointSize: Tokens.font.size.large
                 font.weight: 500
                 elide: Text.ElideRight
             }
@@ -66,19 +65,19 @@ ColumnLayout {
                 animate: true
                 text: qsTr("Humidity: %1%").arg(Weather.humidity)
                 color: Colours.palette.m3onSurfaceVariant
-                font.pointSize: Appearance.font.size.normal
+                font.pointSize: Tokens.font.size.normal
                 elide: Text.ElideRight
             }
         }
 
         Loader {
-            Layout.rightMargin: Appearance.padding.smaller
             asynchronous: true
+            Layout.rightMargin: Tokens.padding.smaller
             active: root.width > 400
             visible: active
 
             sourceComponent: ColumnLayout {
-                spacing: Appearance.spacing.small
+                spacing: Tokens.spacing.small
 
                 StyledText {
                     Layout.fillWidth: true
@@ -87,7 +86,7 @@ ColumnLayout {
                     text: Weather.temp
                     color: Colours.palette.m3primary
                     horizontalAlignment: Text.AlignRight
-                    font.pointSize: Appearance.font.size.extraLarge
+                    font.pointSize: Tokens.font.size.extraLarge
                     font.weight: 500
                     elide: Text.ElideLeft
                 }
@@ -99,7 +98,7 @@ ColumnLayout {
                     text: qsTr("Feels like: %1").arg(Weather.feelsLike)
                     color: Colours.palette.m3outline
                     horizontalAlignment: Text.AlignRight
-                    font.pointSize: Appearance.font.size.smaller
+                    font.pointSize: Tokens.font.size.smaller
                     elide: Text.ElideLeft
                 }
             }
@@ -109,44 +108,27 @@ ColumnLayout {
     Loader {
         id: forecastLoader
 
-        Layout.topMargin: Appearance.spacing.smaller
-        Layout.bottomMargin: Appearance.padding.large * 2
+        asynchronous: true
+        Layout.topMargin: Tokens.spacing.smaller
+        Layout.bottomMargin: Tokens.padding.large * 2
         Layout.fillWidth: true
 
-        asynchronous: true
         active: root.rootHeight > 820
         visible: active
 
         sourceComponent: RowLayout {
-            spacing: Appearance.spacing.large
+            spacing: Tokens.spacing.large
 
             Repeater {
                 model: {
-                    const forecast = Weather.forecast;
-                    let count = root.width < 320 ? 3 : root.width < 400 ? 4 : 5;
+                    const forecast = Weather.hourlyForecast;
+                    const count = root.width < 320 ? 3 : root.width < 400 ? 4 : 5;
                     if (!forecast)
                         return Array.from({
                             length: count
                         }, () => null);
 
-                    const hours = [];
-                    const hour = new Date().getHours();
-
-                    const today = forecast[0].hourly;
-                    const arr = [...today, ...forecast[1].hourly];
-                    for (let i = 0; i < arr.length; i++) {
-                        const time = parseInt(arr[i].time, 10) / 100;
-
-                        if (i > today.length ? time < hour : time > hour) {
-                            hours.push(arr[i]);
-                            count--;
-                        }
-
-                        if (count === 0)
-                            break;
-                    }
-
-                    return hours;
+                    return forecast.slice(0, count);
                 }
 
                 ColumnLayout {
@@ -155,33 +137,31 @@ ColumnLayout {
                     required property var modelData
 
                     Layout.fillWidth: true
-                    spacing: Appearance.spacing.small
+                    spacing: Tokens.spacing.small
 
                     StyledText {
                         Layout.fillWidth: true
                         text: {
-                            if (!forecastHour.modelData)
-                                return "00 AM";
-                            const hour = parseInt(forecastHour.modelData.time, 10) / 100;
+                            const hour = forecastHour.modelData?.hour ?? 0;
                             return hour > 12 ? `${(hour - 12).toString().padStart(2, "0")} PM` : `${hour.toString().padStart(2, "0")} AM`;
                         }
                         color: Colours.palette.m3outline
                         horizontalAlignment: Text.AlignHCenter
-                        font.pointSize: Appearance.font.size.larger
+                        font.pointSize: Tokens.font.size.larger
                     }
 
                     MaterialIcon {
                         Layout.alignment: Qt.AlignHCenter
-                        text: forecastHour.modelData ? Icons.getWeatherIcon(forecastHour.modelData.weatherCode) : "cloud"
-                        font.pointSize: Appearance.font.size.extraLarge * 1.5
+                        text: forecastHour.modelData?.icon ?? "cloud_alert"
+                        font.pointSize: Tokens.font.size.extraLarge * 1.5
                         font.weight: 500
                     }
 
                     StyledText {
                         Layout.alignment: Qt.AlignHCenter
-                        text: Config.services.useFahrenheit ? `${forecastHour.modelData?.tempF ?? 0}°F` : `${forecastHour.modelData?.tempC ?? 0}°C`
+                        text: GlobalConfig.services.useFahrenheit ? `${forecastHour.modelData?.tempF ?? 0}°F` : `${forecastHour.modelData?.tempC ?? 0}°C`
                         color: Colours.palette.m3secondary
-                        font.pointSize: Appearance.font.size.larger
+                        font.pointSize: Tokens.font.size.larger
                     }
                 }
             }
