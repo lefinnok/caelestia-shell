@@ -47,116 +47,97 @@ StyledListView {
         }
     }
 
-    state: {
+    // Determine launcher mode from search text
+    function getMode(): string {
         const text = search.text;
         const prefix = GlobalConfig.launcher.actionPrefix;
         if (text.startsWith(prefix)) {
             for (const action of ["calc", "scheme", "variant"])
                 if (text.startsWith(`${prefix}${action} `))
                     return action;
-
             return "actions";
         }
-
         return "apps";
     }
 
-    onStateChanged: {
-        if (state === "scheme" || state === "variant")
-            Schemes.reload();
+    // Perform the search and update model safely (avoids ScriptModel move bug)
+    function updateResults(): void {
+        const mode = getMode();
+
+        // Update delegate if mode changed
+        switch (mode) {
+        case "apps":
+            delegate = appItem;
+            break;
+        case "actions":
+            delegate = actionItem;
+            break;
+        case "calc":
+            delegate = calcItem;
+            break;
+        case "scheme":
+            delegate = schemeItem;
+            break;
+        case "variant":
+            delegate = variantItem;
+            break;
+        }
+
+        // Get new results
+        let results;
+        switch (mode) {
+        case "apps":
+            results = Apps.search(search.text);
+            break;
+        case "actions":
+            results = Actions.query(search.text);
+            break;
+        case "calc":
+            results = [0];
+            break;
+        case "scheme":
+            results = Schemes.query(search.text);
+            break;
+        case "variant":
+            results = M3Variants.query(search.text);
+            break;
+        default:
+            results = [];
+        }
+
+        // Clear model first to avoid ScriptModel::updateValuesUnique move bug.
+        // Going [] -> [items] only triggers inserts (no moves), avoiding the
+        // segfault in QQmlDelegateModelPrivate::itemsMoved.
+        model.values = [];
+        model.values = results;
     }
 
-    states: [
-        State {
-            name: "apps"
+    property string _lastMode: ""
 
-            PropertyChanges {
-                model.values: Apps.search(search.text)
-                root.delegate: appItem
-            }
-        },
-        State {
-            name: "actions"
+    // Debounced search: update after brief pause to reduce model churn
+    Timer {
+        id: searchDebounce
+        interval: 16 // ~1 frame at 60fps - just enough to batch rapid keystrokes
+        onTriggered: root.updateResults()
+    }
 
-            PropertyChanges {
-                model.values: Actions.query(search.text)
-                root.delegate: actionItem
+    Connections {
+        target: root.search
+        function onTextChanged(): void {
+            const mode = root.getMode();
+            if (mode !== root._lastMode) {
+                root._lastMode = mode;
+                if (mode === "scheme" || mode === "variant")
+                    Schemes.reload();
             }
-        },
-        State {
-            name: "calc"
-
-            PropertyChanges {
-                model.values: [0]
-                root.delegate: calcItem
-            }
-        },
-        State {
-            name: "scheme"
-
-            PropertyChanges {
-                model.values: Schemes.query(search.text)
-                root.delegate: schemeItem
-            }
-        },
-        State {
-            name: "variant"
-
-            PropertyChanges {
-                model.values: M3Variants.query(search.text)
-                root.delegate: variantItem
-            }
+            searchDebounce.restart();
         }
-    ]
+    }
 
-    transitions: Transition {
-        SequentialAnimation {
-            ParallelAnimation {
-                Anim {
-                    target: root
-                    property: "opacity"
-                    from: 1
-                    to: 0
-                    duration: Tokens.anim.durations.small
-                    easing: Tokens.anim.standardAccel
-                }
-                Anim {
-                    target: root
-                    property: "scale"
-                    from: 1
-                    to: 0.9
-                    duration: Tokens.anim.durations.small
-                    easing: Tokens.anim.standardAccel
-                }
-            }
-            PropertyAction {
-                targets: [model, root]
-                properties: "values,delegate"
-            }
-            ParallelAnimation {
-                Anim {
-                    target: root
-                    property: "opacity"
-                    from: 0
-                    to: 1
-                    duration: Tokens.anim.durations.small
-                    easing: Tokens.anim.standardDecel
-                }
-                Anim {
-                    target: root
-                    property: "scale"
-                    from: 0.9
-                    to: 1
-                    duration: Tokens.anim.durations.small
-                    easing: Tokens.anim.standardDecel
-                }
-            }
-            PropertyAction {
-                targets: [root.add, root.remove]
-                property: "enabled"
-                value: true
-            }
-        }
+    // Initial population
+    Component.onCompleted: {
+        delegate = appItem;
+        updateResults();
     }
 
     StyledScrollBar.vertical: StyledScrollBar {
@@ -164,8 +145,6 @@ StyledListView {
     }
 
     add: Transition {
-        enabled: !root.state
-
         Anim {
             properties: "opacity,scale"
             from: 0
@@ -174,22 +153,10 @@ StyledListView {
     }
 
     remove: Transition {
-        enabled: !root.state
-
         Anim {
             properties: "opacity,scale"
             from: 1
             to: 0
-        }
-    }
-
-    move: Transition {
-        Anim {
-            property: "y"
-        }
-        Anim {
-            properties: "opacity,scale"
-            to: 1
         }
     }
 
